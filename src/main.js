@@ -1,6 +1,7 @@
 import './style.css'
 import { initDebits } from './tabs/debits.js'
 import { initExpenses } from './tabs/expenses.js'
+import { initOptions } from './tabs/options.js'
 
 const navButtons = document.querySelectorAll('[data-tab]')
 const panels = document.querySelectorAll('[data-tab-panel]')
@@ -25,5 +26,6 @@ navButtons.forEach((button) => {
 
 initExpenses(document.querySelector('#tab-expenses'))
 initDebits(document.querySelector('#tab-debits'))
+initOptions(document.querySelector('#tab-options'))
 
 showTab('expenses')

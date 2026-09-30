@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Dark mode piloté par la classe .dark sur <html> (bascule dans l'onglet Options) */
+/* Dark mode piloté par la classe .dark sur <html> (clair / sombre / appareil : voir src/tabs/options.js) */
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Tokens sémantiques : les utilitaires (bg-surface, text-fg, ...) lisent ces variables,
