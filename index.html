@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Budget</title>
+  </head>
+  <body class="min-h-dvh">
+    <div class="mx-auto flex min-h-dvh max-w-md flex-col">
+      <main class="flex-1 px-4 pt-[calc(env(safe-area-inset-top)+1rem)] pb-[calc(env(safe-area-inset-bottom)+5rem)]">
+        <section id="tab-expenses" data-tab-panel="expenses" aria-labelledby="nav-expenses">
+          <div data-expenses-empty class="flex flex-col items-center gap-4 pt-16 text-center">
+            <h1 class="text-2xl font-bold">Dépenses</h1>
+            <p class="text-fg-muted">Aucun mois en cours. Crée un mois pour commencer le suivi.</p>
+            <button type="button" data-month-open class="rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg">
+              Nouveau mois
+            </button>
+          </div>
+
+          <div data-expenses-content hidden>
+            <header class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h1 data-month-title class="truncate text-2xl font-bold"></h1>
+                <p data-month-period class="text-sm text-fg-muted"></p>
+              </div>
+              <button
+                type="button"
+                data-month-open
+                class="shrink-0 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm font-medium"
+              >
+                Nouveau mois
+              </button>
+            </header>
+
+            <div class="mt-4 flex items-center justify-between rounded-xl bg-primary px-4 py-3 text-primary-fg">
+              <span class="text-sm font-medium">Disponible aujourd'hui</span>
+              <span data-today-amount class="text-xl font-bold tabular-nums">—</span>
+            </div>
+
+            <div class="mt-4 overflow-x-auto rounded-xl border border-border bg-surface">
+              <table class="w-full text-sm">
+                <thead class="sticky top-0 bg-surface-muted text-xs text-fg-muted">
+                  <tr>
+                    <th scope="col" class="px-2 py-2 text-left font-medium">Date</th>
+                    <th scope="col" class="px-2 py-2 text-right font-medium">€/JOURS</th>
+                    <th scope="col" class="px-2 py-2 text-right font-medium">Dépense</th>
+                    <th scope="col" class="px-2 py-2 text-right font-medium">J</th>
+                    <th scope="col" class="px-2 py-2 text-right font-medium">Report</th>
+                  </tr>
+                </thead>
+                <tbody data-expenses-body class="divide-y divide-border"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <dialog
+            data-month-dialog
+            aria-labelledby="month-dialog-title"
+            class="m-auto w-[calc(100%-2rem)] max-w-md rounded-xl border border-border bg-surface p-0 text-fg backdrop:bg-black/50"
+          >
+            <form novalidate class="grid gap-3 p-4">
+              <h2 id="month-dialog-title" class="text-lg font-semibold">Nouveau mois</h2>
+
+              <label class="grid gap-1 text-sm">
+                Nom
+                <input name="name" required class="rounded-lg border border-border bg-surface-muted px-3 py-2 text-base" />
+              </label>
+
+              <div class="grid grid-cols-2 gap-2">
+                <label class="grid gap-1 text-sm">
+                  Début
+                  <input name="startDate" type="date" required class="rounded-lg border border-border bg-surface-muted px-3 py-2 text-base" />
+                </label>
+                <label class="grid gap-1 text-sm">
+                  Fin
+                  <input name="endDate" type="date" required class="rounded-lg border border-border bg-surface-muted px-3 py-2 text-base" />
+                </label>
+              </div>
+
+              <label class="grid gap-1 text-sm">
+                Montant par jour (€)
+                <input
+                  name="dailyAllowance"
+                  type="text"
+                  inputmode="decimal"
+                  required
+                  placeholder="20,00"
+                  class="rounded-lg border border-border bg-surface-muted px-3 py-2 text-base"
+                />
+              </label>
+
+              <p data-month-error hidden role="alert" class="text-sm text-danger"></p>
+              <p class="text-xs text-fg-muted">Le mois actuellement en cours sera désactivé.</p>
+
+              <div class="mt-1 flex justify-end gap-2">
+                <button type="button" data-month-cancel class="rounded-lg px-4 py-2 font-medium text-fg-muted">
+                  Annuler
+                </button>
+                <button type="submit" class="rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg">
+                  Créer
+                </button>
+              </div>
+            </form>
+          </dialog>
+        </section>
+
+        <section id="tab-debits" data-tab-panel="debits" aria-labelledby="nav-debits" class="hidden">
+          <h1 class="text-2xl font-bold">Prélèvements</h1>
+
+          <div class="mt-4 flex items-center justify-between rounded-xl bg-primary px-4 py-3 text-primary-fg">
+            <span class="text-sm font-medium">Restant dû</span>
+            <span data-debits-remaining class="text-xl font-bold tabular-nums">0,00 €</span>
+          </div>
+
+          <ul data-debits-list class="mt-4 hidden divide-y divide-border rounded-xl border border-border bg-surface"></ul>
+          <p data-debits-empty class="mt-4 rounded-xl border border-dashed border-border px-4 py-6 text-center text-sm text-fg-muted">
+            Aucun prélèvement enregistré.
+          </p>
+
+          <form data-debits-form class="mt-6 grid grid-cols-[4rem_1fr] gap-2 rounded-xl border border-border bg-surface p-4">
+            <h2 class="col-span-2 text-sm font-semibold">Ajouter un prélèvement</h2>
+            <input
+              name="label"
+              required
+              placeholder="Libellé (ex. Loyer)"
+              aria-label="Libellé"
+              class="col-span-2 rounded-lg border border-border bg-surface-muted px-3 py-2"
+            />
+            <input
+              name="dayOfMonth"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              max="31"
+              required
+              placeholder="Jour"
+              aria-label="Jour du mois"
+              class="rounded-lg border border-border bg-surface-muted px-3 py-2"
+            />
+            <input
+              name="amount"
+              type="text"
+              inputmode="decimal"
+              pattern="\d+([.,]\d{1,2})?"
+              required
+              placeholder="Montant (€)"
+              aria-label="Montant en euros"
+              class="rounded-lg border border-border bg-surface-muted px-3 py-2"
+            />
+            <button type="submit" class="col-span-2 mt-1 rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg">
+              Ajouter
+            </button>
+          </form>
+        </section>
+
+        <section id="tab-options" data-tab-panel="options" aria-labelledby="nav-options" class="hidden">
+          <h1 class="text-2xl font-bold">Options</h1>
+          <p class="mt-2 text-fg-muted">Paramètres et thème.</p>
+        </section>
+      </main>
+    </div>
+
+    <nav
+      class="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-surface pb-[env(safe-area-inset-bottom)]"
+      aria-label="Navigation principale"
+    >
+      <ul class="mx-auto grid max-w-md grid-cols-3">
+        <li>
+          <button
+            type="button"
+            id="nav-expenses"
+            data-tab="expenses"
+            aria-controls="tab-expenses"
+            aria-current="page"
+            class="flex h-16 w-full flex-col items-center justify-center gap-1 text-xs font-medium text-fg-muted aria-[current=page]:text-primary"
+          >
+            <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2" y="5" width="20" height="14" rx="2" />
+              <path d="M2 10h20" />
+              <path d="M6 15h4" />
+            </svg>
+            Dépenses
+          </button>
+        </li>
+        <li>
+          <button
+            type="button"
+            id="nav-debits"
+            data-tab="debits"
+            aria-controls="tab-debits"
+            class="flex h-16 w-full flex-col items-center justify-center gap-1 text-xs font-medium text-fg-muted aria-[current=page]:text-primary"
+          >
+            <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <path d="M16 2v4M8 2v4M3 10h18" />
+              <path d="m9 16 2 2 4-4" />
+            </svg>
+            Prélèvements
+          </button>
+        </li>
+        <li>
+          <button
+            type="button"
+            id="nav-options"
+            data-tab="options"
+            aria-controls="tab-options"
+            class="flex h-16 w-full flex-col items-center justify-center gap-1 text-xs font-medium text-fg-muted aria-[current=page]:text-primary"
+          >
+            <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            Options
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

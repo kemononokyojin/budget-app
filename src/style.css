@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/* Dark mode piloté par la classe .dark sur <html> (bascule dans l'onglet Options) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tokens sémantiques : les utilitaires (bg-surface, text-fg, ...) lisent ces variables,
+   qui changent de valeur selon le thème. */
+@theme {
+  --color-bg: var(--app-bg);
+  --color-surface: var(--app-surface);
+  --color-surface-muted: var(--app-surface-muted);
+  --color-fg: var(--app-fg);
+  --color-fg-muted: var(--app-fg-muted);
+  --color-border: var(--app-border);
+  --color-primary: var(--app-primary);
+  --color-primary-fg: var(--app-primary-fg);
+  --color-success: var(--app-success);
+  --color-danger: var(--app-danger);
+}
+
+@layer base {
+  :root {
+    --app-bg: var(--color-slate-50);
+    --app-surface: var(--color-white);
+    --app-surface-muted: var(--color-slate-100);
+    --app-fg: var(--color-slate-900);
+    --app-fg-muted: var(--color-slate-500);
+    --app-border: var(--color-slate-200);
+    --app-primary: var(--color-indigo-600);
+    --app-primary-fg: var(--color-white);
+    --app-success: var(--color-emerald-600);
+    --app-danger: var(--color-rose-600);
+    color-scheme: light;
+  }
+
+  :root.dark {
+    --app-bg: var(--color-slate-950);
+    --app-surface: var(--color-slate-900);
+    --app-surface-muted: var(--color-slate-800);
+    --app-fg: var(--color-slate-100);
+    --app-fg-muted: var(--color-slate-400);
+    --app-border: var(--color-slate-700);
+    --app-primary: var(--color-indigo-400);
+    --app-primary-fg: var(--color-slate-950);
+    --app-success: var(--color-emerald-400);
+    --app-danger: var(--color-rose-400);
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-bg text-fg antialiased;
+  }
+}
