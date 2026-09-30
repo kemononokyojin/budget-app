@@ -1,4 +1,5 @@
 import './style.css'
+import { initPwa } from './pwa.js'
 import { initDebits } from './tabs/debits.js'
 import { initExpenses } from './tabs/expenses.js'
 import { initOptions } from './tabs/options.js'
@@ -27,5 +28,6 @@ navButtons.forEach((button) => {
 initExpenses(document.querySelector('#tab-expenses'))
 initDebits(document.querySelector('#tab-debits'))
 initOptions(document.querySelector('#tab-options'))
+initPwa()
 
 showTab('expenses')

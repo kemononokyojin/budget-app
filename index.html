@@ -195,6 +195,23 @@
       </main>
     </div>
 
+    <div
+      data-update-toast
+      hidden
+      role="status"
+      class="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] z-20 mx-auto w-[calc(100%-2rem)] max-w-md"
+    >
+      <div class="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 shadow-lg">
+        <p class="min-w-0 flex-1 text-sm">Nouvelle version disponible</p>
+        <button type="button" data-update-accept class="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-fg disabled:opacity-60">
+          Mettre à jour
+        </button>
+        <button type="button" data-update-dismiss aria-label="Plus tard" class="shrink-0 rounded p-1 text-fg-muted">
+          <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
     <nav
       class="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-surface pb-[env(safe-area-inset-bottom)]"
       aria-label="Navigation principale"

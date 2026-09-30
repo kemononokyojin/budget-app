@@ -6,8 +6,10 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      // 'prompt' : le nouveau Service Worker attend que l'utilisateur valide la mise à jour (toast, src/pwa.js)
+      registerType: 'prompt',
+      // Enregistrement fait par src/pwa.js via virtual:pwa-register
+      injectRegister: false,
       includeAssets: ['favicon.svg', 'pwa-192x192.png'],
       manifest: {
         name: 'Budget',
