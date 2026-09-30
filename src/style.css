@@ -16,6 +16,9 @@
   --color-primary-fg: var(--app-primary-fg);
   --color-success: var(--app-success);
   --color-danger: var(--app-danger);
+  /* Fonds pleins sous texte blanc : même teinte foncée dans les deux thèmes pour garder le contraste */
+  --color-success-solid: var(--color-emerald-600);
+  --color-danger-solid: var(--color-rose-600);
 }
 
 @layer base {

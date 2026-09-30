@@ -47,7 +47,7 @@
               </button>
             </header>
 
-            <div class="mt-4 flex items-center justify-between rounded-xl bg-primary px-4 py-3 text-primary-fg">
+            <div data-today-card class="mt-4 flex items-center justify-between rounded-xl bg-primary px-4 py-3 text-primary-fg">
               <span class="text-sm font-medium">Disponible aujourd'hui</span>
               <span data-today-amount class="text-xl font-bold tabular-nums">—</span>
             </div>
@@ -59,8 +59,10 @@
                     <th scope="col" class="px-2 py-2 text-left font-medium">Date</th>
                     <th scope="col" class="px-2 py-2 text-right font-medium">€/JOURS</th>
                     <th scope="col" class="px-2 py-2 text-right font-medium">Dépense</th>
-                    <th scope="col" class="px-2 py-2 text-right font-medium">J</th>
                     <th scope="col" class="px-2 py-2 text-right font-medium">Report</th>
+                    <th scope="col" class="px-2 py-2 text-right font-medium">
+                      <abbr title="Jours sans dépense pour revenir à l'équilibre" class="no-underline">J</abbr>
+                    </th>
                   </tr>
                 </thead>
                 <tbody data-expenses-body class="divide-y divide-border"></tbody>

@@ -3,6 +3,7 @@ import { db } from '../db.js'
 
 const currency = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' })
 const number = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const formatCents = (cents) => currency.format(cents / 100)
 const dayLabel = new Intl.DateTimeFormat('fr-FR', {
   weekday: 'short',
   day: '2-digit',
@@ -14,7 +15,8 @@ const MAX_DAYS = 366
 
 // Tous les calculs se font en centimes pour éviter les erreurs d'arrondi des flottants
 const toCents = (amount) => Math.round(Number(amount) * 100)
-const parseAmount = (value) => Number(String(value).trim().replace(',', '.'))
+// Accepte aussi une valeur déjà formatée ("1 234,50 €") : espaces et symbole retirés
+const parseAmount = (value) => Number(String(value).replace(/[\s€]/g, '').replace(',', '.'))
 
 // Dates manipulées en 'YYYY-MM-DD' et en UTC pour ne pas subir les changements d'heure
 function eachDate(startDate, endDate) {
@@ -55,9 +57,11 @@ function monthName(isoDate) {
 
 /**
  * Tableau en cascade (montants en centimes) :
- *   €/JOURS(n) = dailyAllowance
- *   J(n)       = €/JOURS(n) + Report(n-1)   (Report(0) = 0)
- *   Report(n)  = J(n) - Dépense(n)
+ *   €/JOURS(n)     = dailyAllowance
+ *   Disponible(n)  = €/JOURS(n) + Report(n-1)   (Report(0) = 0)
+ *   Report(n)      = Disponible(n) - Dépense(n)
+ *   J(n)           = nombre de jours sans dépense pour revenir à l'équilibre, c.-à-d. le plus petit
+ *                    k >= 0 tel que Report(n) + k × €/JOURS >= 0 (0 si Report(n) >= 0)
  */
 export function computeSchedule(month, records) {
   const expenses = new Map()
@@ -70,34 +74,31 @@ export function computeSchedule(month, records) {
 
   return eachDate(month.startDate, month.endDate).map((date) => {
     const expense = expenses.get(date) ?? 0
-    const j = allowance + previousReport
-    const report = j - expense
+    const available = allowance + previousReport
+    const report = available - expense
+    const j = report >= 0 ? 0 : Math.ceil(-report / allowance)
     previousReport = report
-    return { date, allowance, expense, hasExpense: expenses.has(date), j, report }
+    return { date, allowance, expense, hasExpense: expenses.has(date), available, report, j }
   })
-}
-
-function signClass(cents) {
-  return cents < 0 ? 'text-danger' : ''
 }
 
 function buildRow(date) {
   const tr = document.createElement('tr')
   tr.dataset.date = date
   tr.innerHTML = `
-    <th scope="row" class="px-2 py-1.5 text-left font-normal whitespace-nowrap text-fg-muted"></th>
-    <td data-col="allowance" class="px-2 py-1.5 text-right tabular-nums"></td>
+    <th scope="row" class="px-2 py-1.5 text-left whitespace-nowrap"></th>
+    <td data-col="allowance" class="px-2 py-1.5 text-right whitespace-nowrap tabular-nums"></td>
     <td class="px-1 py-1">
       <input
         data-col="expense"
         type="text"
         inputmode="decimal"
-        placeholder="0,00"
-        class="w-full min-w-16 rounded-md border border-border bg-surface-muted px-2 py-1 text-right tabular-nums"
+        placeholder="0,00 €"
+        class="w-full min-w-20 rounded-md border border-border bg-surface-muted px-2 py-1 text-right tabular-nums"
       />
     </td>
-    <td data-col="j" class="px-2 py-1.5 text-right font-medium tabular-nums"></td>
-    <td data-col="report" class="px-2 py-1.5 text-right tabular-nums"></td>
+    <td data-col="report" class="px-2 py-1.5 text-right whitespace-nowrap tabular-nums"></td>
+    <td data-col="j" class="px-2 py-1.5 text-right tabular-nums"></td>
   `
   tr.querySelector('th').textContent = dayLabel.format(new Date(`${date}T00:00:00Z`))
   tr.querySelector('[data-col="expense"]').setAttribute('aria-label', `Dépense du ${date}`)
@@ -105,22 +106,40 @@ function buildRow(date) {
 }
 
 function updateRow(tr, row, isToday) {
+  // Ligne du jour : surbrillance + gras (l'input hérite de la graisse via le preflight Tailwind)
   tr.classList.toggle('bg-primary/10', isToday)
-  tr.querySelector('[data-col="allowance"]').textContent = number.format(row.allowance / 100)
+  tr.classList.toggle('font-bold', isToday)
+  tr.querySelector('th').classList.toggle('text-fg-muted', !isToday)
+  tr.querySelector('[data-col="allowance"]').textContent = formatCents(row.allowance)
 
   const input = tr.querySelector('[data-col="expense"]')
   // Ne pas écraser la saisie en cours
   if (document.activeElement !== input) {
-    input.value = row.hasExpense ? number.format(row.expense / 100) : ''
+    input.value = row.hasExpense ? formatCents(row.expense) : ''
   }
 
-  const j = tr.querySelector('[data-col="j"]')
-  j.textContent = number.format(row.j / 100)
-  j.className = `px-2 py-1.5 text-right font-medium tabular-nums ${signClass(row.j)}`
-
   const report = tr.querySelector('[data-col="report"]')
-  report.textContent = number.format(row.report / 100)
-  report.className = `px-2 py-1.5 text-right tabular-nums ${signClass(row.report)}`
+  report.textContent = formatCents(row.report)
+  report.classList.toggle('text-danger', row.report < 0)
+
+  const j = tr.querySelector('[data-col="j"]')
+  j.textContent = String(row.j)
+  j.classList.toggle('text-danger', row.j > 0)
+  j.classList.toggle('text-fg-muted', row.j === 0)
+}
+
+// Fond du cadre « Disponible aujourd'hui » selon le signe du montant
+const TODAY_CARD_CLASSES = {
+  positive: ['bg-success-solid', 'text-white'],
+  zero: ['bg-primary', 'text-primary-fg'],
+  negative: ['bg-danger-solid', 'text-white'],
+}
+
+function updateTodayCard(card, amount, cents) {
+  const tone = cents === null || cents === 0 ? 'zero' : cents > 0 ? 'positive' : 'negative'
+  card.classList.remove(...Object.values(TODAY_CARD_CLASSES).flat())
+  card.classList.add(...TODAY_CARD_CLASSES[tone])
+  amount.textContent = cents === null ? '—' : formatCents(cents)
 }
 
 async function getActiveMonth() {
@@ -223,6 +242,7 @@ export function initExpenses(panel) {
   const content = panel.querySelector('[data-expenses-content]')
   const title = panel.querySelector('[data-month-title]')
   const period = panel.querySelector('[data-month-period]')
+  const todayCard = panel.querySelector('[data-today-card]')
   const todayAmount = panel.querySelector('[data-today-amount]')
   const tbody = panel.querySelector('[data-expenses-body]')
 
@@ -251,8 +271,8 @@ export function initExpenses(panel) {
       )} · ${currency.format(month.dailyAllowance)} / jour`
 
       const todayRow = schedule.find((row) => row.date === today)
-      todayAmount.textContent = todayRow ? currency.format(todayRow.j / 100) : '—'
-      todayAmount.classList.toggle('text-danger', Boolean(todayRow && todayRow.j < 0))
+      // Disponible aujourd'hui = Report de la veille + €/JOURS du jour
+      updateTodayCard(todayCard, todayAmount, todayRow ? todayRow.available : null)
 
       // Les lignes ne sont reconstruites que si la période change, pour garder le focus pendant la saisie
       const key = `${month.id}:${month.startDate}:${month.endDate}`
@@ -271,6 +291,14 @@ export function initExpenses(panel) {
     const saved = await saveExpense(currentMonthId, input.closest('tr').dataset.date, input.value)
     input.classList.toggle('border-danger', !saved)
     input.setAttribute('aria-invalid', String(!saved))
+  })
+
+  // Pendant l'édition, retirer le symbole € pour ne garder que le nombre
+  tbody.addEventListener('focusin', (event) => {
+    const input = event.target.closest('[data-col="expense"]')
+    if (!input || input.value === '') return
+    const value = parseAmount(input.value)
+    if (Number.isFinite(value)) input.value = number.format(value)
   })
 
   tbody.addEventListener('keydown', (event) => {
