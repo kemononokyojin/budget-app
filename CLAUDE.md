@@ -31,7 +31,7 @@ db.version(1).stores({
 ## Formules du tableau Dépenses (calcul en cascade, jour n)
 *   Ordre des colonnes : Date, €/JOURS, Dépense, Report, J. Montants affichés au format `[montant] €`.
 *   **€/JOURS(n)** = `dailyAllowance` du mois (fixe).
-*   **Disponible(n)** = €/JOURS(n) + Report(n−1) — montant disponible pour le jour (non affiché en colonne ; c'est la valeur du cadre « Disponible aujourd'hui »). Pour le premier jour, Report(n−1) = 0.
+*   **Disponible(n)** = €/JOURS(n) + Report(n−1) — montant disponible pour le jour, avant dépense (non affiché en colonne). Pour le premier jour, Report(n−1) = 0.
 *   **Report(n)** = Disponible(n) − Dépense(n) — reporté sur le jour suivant (peut être négatif).
 *   **J(n)** = nombre de jours sans dépense nécessaires pour revenir à l'équilibre : plus petit k ≥ 0 tel que Report(n) + k × €/JOURS ≥ 0 (0 si Report(n) ≥ 0).
-*   Cadre « Disponible aujourd'hui » : fond vert si > 0, bleu (primary) si = 0, rouge si < 0.
+*   Cadre « Disponible aujourd'hui » = Report(aujourd'hui) : égal à Disponible(aujourd'hui) si la dépense du jour est vide ou à 0, sinon Disponible − Dépense. Fond vert si > 0, bleu (primary) si = 0, rouge si < 0.

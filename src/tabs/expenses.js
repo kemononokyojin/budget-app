@@ -271,8 +271,9 @@ export function initExpenses(panel) {
       )} · ${currency.format(month.dailyAllowance)} / jour`
 
       const todayRow = schedule.find((row) => row.date === today)
-      // Disponible aujourd'hui = Report de la veille + €/JOURS du jour
-      updateTodayCard(todayCard, todayAmount, todayRow ? todayRow.available : null)
+      // Disponible aujourd'hui = Report du jour : vaut Report de la veille + €/JOURS tant qu'aucune
+      // dépense n'est saisie (ou si elle est vidée / mise à 0), puis déduit la dépense une fois saisie
+      updateTodayCard(todayCard, todayAmount, todayRow ? todayRow.report : null)
 
       // Les lignes ne sont reconstruites que si la période change, pour garder le focus pendant la saisie
       const key = `${month.id}:${month.startDate}:${month.endDate}`
